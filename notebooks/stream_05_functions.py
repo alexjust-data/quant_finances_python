@@ -10,10 +10,10 @@ import matplotlib as mpl
 from scipy.stats import skew, kurtosis, chi2, linregress
 
 # import our own files an reload
-import stream_classes_refactoring2
-import stream_functions
-importlib.reload(stream_functions)
-importlib.reload(stream_classes_refactoring2)
+import stream_04_classes_refactoring2
+import stream_05_functions
+importlib.reload(stream_05_functions)
+importlib.reload(stream_04_classes_refactoring2)
 
 
 

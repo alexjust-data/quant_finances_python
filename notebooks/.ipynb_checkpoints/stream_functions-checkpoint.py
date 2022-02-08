@@ -21,13 +21,11 @@ def load_time_series(ric, file_extension="csv"):
         - x_str : real returns daily ric
         - t : dataframe
     """
-
     path = "data/" + ric + "." + file_extension
     if file_extension == "csv":
         table_raw = pd.read_csv(path) 
     else:
         table_raw = pd.read_excel(path) 
-
     # creating table returns
     t = pd.DataFrame()
     t['date'] = pd.to_datetime(table_raw['Date'], dayfirst=True)
@@ -37,7 +35,6 @@ def load_time_series(ric, file_extension="csv"):
     t['return_close'] = (t['close'] / t['close_previous']) - 1
     t = t.dropna()                             # eliminate nan
     t = t.reset_index(drop=True)               # for having deleted rows
-
     # input for Jarque-Bera test
     x = t['return_close'].values               # return to arrays
     x_str = "Real returns " + ric
@@ -64,7 +61,6 @@ def jarque_bera_test(x, x_str):
     jb = len(x)/6 * (x_skew**2 + 1/4*(x_kurt**2))
     p_value = 1 - chi2.cdf(jb, df=2) # buscamos dos grados de libertad
     is_normal = (p_value > 0.05) # equivalenty jb < 6
-
     # print risk metrics
     plot_str = "mean: " + str(np.round(x_mean, 4))\
         + " | std : " + str(np.round(x_stdev, 4))\
@@ -95,7 +91,6 @@ def plot_time_series_price(ric, t):
 
 
 
-
 def plot_histogram(x, x_str, plot_str, bins=100):
     """Plot histogram from data markets
     Arguments:
@@ -109,3 +104,44 @@ def plot_histogram(x, x_str, plot_str, bins=100):
     plt.title("Histrogram " + x_str)
     plt.xlabel(plot_str)
     plt.show()
+
+
+
+def synchronise_timeseries(ric, benchmark, file_extension='csv'):
+    """Sincroniza series de tiempo.
+    Arguments:
+        - ric : value
+        - benchmark : market
+        - file_extension
+    Return:
+        - x, y para la regresión
+        - t para comprobar resultados
+        - file_extension
+    """
+    # loading data from vcs o excel
+    x1, str1, t1 = load_time_series(ric)
+    x2, str2, t2 = load_time_series(benchmark)
+    # sinchronize timestamps
+    timestamps1 = list(t1['date'].values) # .values lo convierte en array
+    timestamps2 = list(t2['date'].values)
+    timestamps = list(set(timestamps1) & set(timestamps2))
+    # synchronised time series for x1 (ric)
+    t1_sync = t1[t1['date'].isin(timestamps)]
+    t1_sync.sort_values(by='date', ascending=True)
+    t1_sync = t1_sync.reset_index(drop=True)
+    # synchronised time series for x2 (benchmark)
+    t2_sync = t2[t2['date'].isin(timestamps)]
+    t2_sync.sort_values(by='date', ascending=True)
+    t2_sync = t2_sync.reset_index(drop=True)
+    # table of returns for ric and benchmark
+    t = pd.DataFrame()
+    t['date'] = t1_sync.date
+    t['price_1'] = t1_sync.close
+    t['price_2'] = t2_sync.close
+    t['return_1'] = t1_sync.return_close
+    t['return_2'] = t2_sync.return_close
+    # compute vectors of return
+    y = t['return_1'].values
+    x = t['return_2'].values
+ 
+    return x, y, t

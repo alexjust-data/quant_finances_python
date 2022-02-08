@@ -107,7 +107,7 @@ def plot_histogram(x, x_str, plot_str, bins=100):
 
 
 
-def synchronise_timeseries(ric, benchmark, file_extension='csv'):
+def synchronise_timeseries(ric, benchmark, file_extension):
     """Sincroniza series de tiempo.
     Arguments:
         - ric : value

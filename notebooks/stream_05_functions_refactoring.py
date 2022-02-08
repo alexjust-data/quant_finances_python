@@ -27,7 +27,6 @@ def camp(ric, benchmark, file_extension, nb_decimals):
     Returns:
         - Regresión lineal y medidas de riesgo.
     """
-
     # ric = r_a and benchmark = r_m
     x1, str1, t1 = stream_functions.load_time_series(ric)
     x2, str2, t2 = stream_functions.load_time_series(benchmark)
@@ -93,3 +92,33 @@ def camp(ric, benchmark, file_extension, nb_decimals):
     plt.xlabel(benchmark)
     plt.grid()
     plt.show()
+    
+
+
+class capm_manager():
+    
+    # constructor
+    def __init__(self, ric, benchmark):
+        self.nb_decimals = 4
+        self.ric = ric
+        self.benchmark = benchmark
+        self.x = []
+        self.y = []
+        self.t = pd.DataFrame()
+    
+    def load_timeseries(self):
+        # load timeseries and syncronise them
+        self.x, self.y, self.t = stream_functions.synchronise_timeseries(
+            self.ric, self.benchmark
+        )
+    
+    def compute(self):
+        # linal regression of ric with respect to becnhmark
+        slope, intercep, r_values, p_values, std_err = linregress(self.x, self.y)
+        self.beta = np.round(slope, self.nb_decimals)
+        self.alpha = np.round(intercep, self.nb_decimals)
+        self.p_values = np.round(p_values, self.nb_decimals)
+        self.null_hypothesis = p_values > 0.05
+        self.r_values = np.round(r_values, self.nb_decimals)
+        self.r_squared = np.round(r_values**2, self.nb_decimals)
+        self.predictor_linreg = self.alpha + self.beta*self.x   
